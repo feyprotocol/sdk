@@ -10,7 +10,7 @@
 ### Installation
 
 ```bash
-npm install fey-sdk viem
+npm install @feyprotocol/sdk viem
 ```
 
 `viem` v2.9+ is a peer dependency; install it in your host project if it is not already present.
@@ -25,7 +25,7 @@ import {
     parseAccount,
 } from "viem";
 import { base } from "viem/chains";
-import { FeySDK } from "fey-sdk";
+import { FeySDK } from "@feyprotocol/sdk";
 
 const publicClient = createPublicClient({
     chain: base,
@@ -99,7 +99,7 @@ await sdk.claimFees({ feeOwner: "0xVault" });
 -   `defaultAccount`: fallbacks when `walletClient.account` is not set.
 -   `chainId`, `defaults`, `simulate`: advanced knobs exposed via `FeySdkConfig`.
 
-All config types are exported from `fey-sdk` (`FeySdkConfig`, `FeySdkAddresses`, `FeyEnvironment`, …) so you can rely on editor intellisense.
+All config types are exported from `@feyprotocol/sdk` (`FeySdkConfig`, `FeySdkAddresses`, `FeyEnvironment`, …) so you can rely on editor intellisense.
 
 ### Deploy Tokens
 
@@ -129,7 +129,7 @@ Set `simulate: true` (either on the SDK or the method) to skip broadcasting whil
 -   `base-mainnet`: chain id `8453`, factory `0x8EEF0dC80ADf57908bB1be0236c2a72a7e379C2d`, fee locker `0xf739FC4094F3Df0a1Be08E2925b609F3C3Aa13c6`.
 -   `eth-sepolia`: chain id `11155111`, factory `0x30304e34F52a233b63BeAb0E0959B255D3cbc739`, fee locker `0xFB7CE8edF568EEF3739cCf5AE11Dda164B35c9a9`.
 
-Import them from `fey-sdk` when you need to surface the addresses in your own app (e.g. `import { FEY_ADDRESSES } from "fey-sdk";`).
+Import them from `@feyprotocol/sdk` when you need to surface the addresses in your own app (e.g. `import { FEY_ADDRESSES } from "@feyprotocol/sdk";`).
 
 ### Standalone Exports
 
