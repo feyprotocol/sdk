@@ -15,6 +15,11 @@ import {
 
 import { feyAbi } from "./abis/fey";
 import { FeyTokenArtifact } from "./artifacts/feyToken";
+import {
+    DEFAULT_CHAIN_ID,
+    DEFAULT_TICK_SPACING,
+    FEY_TOKEN_SUPPLY_BASE_UNITS,
+} from "./constants";
 import type {
     DeploymentConfig,
     FeyDeployerAddresses,
@@ -24,10 +29,7 @@ import type {
     RewardRecipient,
 } from "./types";
 
-const MAX_SUPPLY = BigInt(100_000_000_000) * 10n ** 18n;
 const DYNAMIC_FEE_FLAG = 0x800000;
-const DEFAULT_CHAIN_ID = 8453n;
-const DEFAULT_TICK_SPACING = 200;
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as Address;
 
 type SaltResult = {
@@ -250,7 +252,7 @@ export class FeyDeployer {
         const constructorArgs = [
             token.name,
             token.symbol,
-            MAX_SUPPLY,
+            FEY_TOKEN_SUPPLY_BASE_UNITS,
             token.tokenAdmin,
             token.image ?? "",
             stringify(token.metadata) || "",
@@ -265,7 +267,7 @@ export class FeyDeployer {
         const args = [
             token.name,
             token.symbol,
-            MAX_SUPPLY,
+            FEY_TOKEN_SUPPLY_BASE_UNITS,
             token.tokenAdmin,
             token.image ?? "",
             stringify(token.metadata) || "",
@@ -511,7 +513,7 @@ export class FeyDeployer {
         ] = [
             deploymentConfig.tokenConfig.name,
             deploymentConfig.tokenConfig.symbol,
-            MAX_SUPPLY,
+            FEY_TOKEN_SUPPLY_BASE_UNITS,
             deploymentConfig.tokenConfig.tokenAdmin,
             deploymentConfig.tokenConfig.image,
             deploymentConfig.tokenConfig.metadata,

@@ -10,7 +10,8 @@
     ],
     "scripts": {
         "build": "tsc -p tsconfig.json",
-        "lint": "tsc --noEmit"
+        "lint": "tsc --noEmit",
+        "test": "node --loader ts-node/esm --experimental-specifier-resolution=node --test src/__tests__/dexscreener.test.ts"
     },
     "keywords": [
         "fey",
@@ -25,6 +26,8 @@
         "viem": ">=2.9.0 <3"
     },
     "devDependencies": {
+        "@types/node": "^24.10.1",
+        "ts-node": "^10.9.2",
         "typescript": "^5.8.3",
         "viem": "^2.9.0"
     }

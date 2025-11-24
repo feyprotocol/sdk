@@ -1,8 +1,10 @@
 import type { Account } from "viem";
 
+import { DexScreenerClient } from "./clients/dexscreener";
 import { FeyDeployer } from "./deployer";
 import { claimFees as claimLockerFees } from "./fees";
 import { FEY_ADDRESSES, FEY_CHAIN_IDS } from "./environments";
+import { deriveTicksFromFeyUsdPrice } from "./pricing/ticks";
 import type {
     ClaimFeesParams,
     DeployTokenParams,
@@ -12,6 +14,18 @@ import type {
     TxResult,
 } from "./types";
 
+type ResolvedAutoTickOptions = {
+    enabled: boolean;
+    targetMarketCapUsd: number;
+    rangeWidthTicks: number;
+};
+
+const DEFAULT_AUTO_TICK_OPTIONS: ResolvedAutoTickOptions = {
+    enabled: true,
+    targetMarketCapUsd: 27_000,
+    rangeWidthTicks: 110_400,
+};
+
 export class FeySDK {
     readonly publicClient: FeySdkConfig["publicClient"];
     readonly walletClient?: FeySdkConfig["walletClient"];
@@ -20,6 +34,8 @@ export class FeySDK {
     readonly simulate: boolean;
     private readonly defaultAccount?: Account;
     private readonly deployer: FeyDeployer;
+    private readonly autoTickOptions: ResolvedAutoTickOptions;
+    private readonly dexScreenerClient: DexScreenerClient;
 
     constructor(config: FeySdkConfig) {
         this.publicClient = config.publicClient;
@@ -52,6 +68,22 @@ export class FeySDK {
         this.defaultAccount =
             config.defaultAccount ?? config.walletClient?.account ?? undefined;
 
+        const shouldEnableAutoTicks =
+            config.autoTicks?.enabled ??
+            (this.environment === "base-mainnet" && !config.defaults);
+
+        this.autoTickOptions = {
+            enabled: shouldEnableAutoTicks,
+            targetMarketCapUsd:
+                config.autoTicks?.targetMarketCapUsd ??
+                DEFAULT_AUTO_TICK_OPTIONS.targetMarketCapUsd,
+            rangeWidthTicks:
+                config.autoTicks?.rangeWidthTicks ??
+                DEFAULT_AUTO_TICK_OPTIONS.rangeWidthTicks,
+        };
+
+        this.dexScreenerClient = new DexScreenerClient();
+
         this.deployer = new FeyDeployer({
             publicClient: config.publicClient,
             walletClient: config.walletClient,
@@ -80,7 +112,8 @@ export class FeySDK {
         options?: { account?: Account; confirmations?: number }
     ): Promise<DeployTokenResult> {
         const account = this.resolveAccount(options?.account);
-        return this.deployer.deploy(params.token, {
+        const tokenWithTicks = await this.resolveAutoTicks(params.token);
+        return this.deployer.deploy(tokenWithTicks, {
             simulate: params.simulate ?? this.simulate,
             account,
             confirmations: options?.confirmations,
@@ -103,5 +136,42 @@ export class FeySDK {
 
     getDeployer() {
         return this.deployer;
+    }
+
+    private async resolveAutoTicks(token: DeployTokenParams["token"]) {
+        if (
+            !this.autoTickOptions.enabled ||
+            Array.isArray(token.pool.positions)
+        ) {
+            return token;
+        }
+
+        try {
+            const quote = await this.dexScreenerClient.getFeyPriceQuote();
+            const ticks = deriveTicksFromFeyUsdPrice({
+                feyPriceUsd: quote.usedPriceUsd,
+                targetMarketCapUsd: this.autoTickOptions.targetMarketCapUsd,
+                rangeWidthTicks: this.autoTickOptions.rangeWidthTicks,
+            });
+
+            return {
+                ...token,
+                pool: {
+                    ...token.pool,
+                    positions: [
+                        {
+                            tickLower: ticks.tickLower,
+                            tickUpper: ticks.tickUpper,
+                            positionBps: 10_000,
+                        },
+                    ],
+                    startingTick: token.pool.startingTick ?? ticks.tickLower,
+                },
+            };
+        } catch (error) {
+            throw new Error(
+                `Failed to derive automatic ticks: ${(error as Error).message}`
+            );
+        }
     }
 }

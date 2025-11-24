@@ -69,15 +69,9 @@ const { predictedAddress, txHash, waitForTransaction } = await sdk.deployToken(
                 ],
             },
             pool: {
-                // You must calculate proper pool position ticks for your token to set the starting market cap and liquidity profile.
-                // Official tokens target ~27k USD
-                positions: [
-                    {
-                        tickLower: -60200,
-                        tickUpper: 50200,
-                        positionBps: 10_000,
-                    },
-                ],
+                // Use the built-in FEY price oracle ("Standard") to auto-derive ticks
+                // or pass custom ranges when you want full control.
+                positions: "Standard",
             },
         },
     },
@@ -98,6 +92,7 @@ await sdk.claimFees({ feeOwner: "0xVault" });
 -   `addresses`: partial overrides for any known Fey contract (factory, lockers, hooks, etc.). Useful for forks or future deployments.
 -   `defaultAccount`: fallbacks when `walletClient.account` is not set.
 -   `chainId`, `defaults`, `simulate`: advanced knobs exposed via `FeySdkConfig`.
+-   `autoTicks`: `{ enabled?, targetMarketCapUsd?, rangeWidthTicks? }`. When enabled (default on `base-mainnet`), the SDK hits Dexscreener's FEY/WETH pair, derives a 4h TWAP USD price, and converts it into a default pool range targeting ~27k USD liquidity.
 
 All config types are exported from `@feyprotocol/sdk` (`FeySdkConfig`, `FeySdkAddresses`, `FeyEnvironment`, …) so you can rely on editor intellisense.
 

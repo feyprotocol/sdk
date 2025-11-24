@@ -78,6 +78,12 @@ export type DeployerDefaults = {
     tickUpper?: number;
 };
 
+export type AutoTickOptions = {
+    enabled?: boolean;
+    targetMarketCapUsd?: number;
+    rangeWidthTicks?: number;
+};
+
 export type FeySdkConfig = {
     publicClient: AnyPublicClient;
     walletClient?: AnyWalletClient;
@@ -86,6 +92,7 @@ export type FeySdkConfig = {
     addresses?: Partial<FeySdkAddresses>;
     chainId?: bigint;
     defaults?: DeployerDefaults;
+    autoTicks?: AutoTickOptions;
     simulate?: boolean;
 };
 
